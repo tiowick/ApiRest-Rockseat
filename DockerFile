@@ -1,15 +1,22 @@
-FROM ubuntu:lastet AS build
+# Estágio de construção
+FROM ubuntu:latest AS build
 
-RUN apt-get update
-RUN apt-get install openjdk-17-jdk -y
+RUN apt-get update && \
+    apt-get install -y openjdk-17-jdk maven
+
+WORKDIR /app
 
 COPY . .
 
-RUN apt-get install maven -y
 RUN mvn clean install
 
-EXPOSE 8080 
+# Estágio de produção
+FROM ubuntu:latest
 
-COPY --from=build /target/todolist-0.0.1.jar app.jar
+WORKDIR /app
+
+COPY --from=build /app/target/todolist-0.0.1.jar app.jar
+
+EXPOSE 8080
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
